@@ -41,6 +41,15 @@ header { display: flex; justify-content: space-between; align-items: baseline; g
 .synoptic img { width: 100%; height: auto; border-radius: 4px; background: #f0f0ee; min-height: 120px; }
 .dp-chart { width: 100%; min-height: 130px; color: var(--muted); font-size: 12px; }
 .dp-chart svg { width: 100%; height: auto; display: block; border-radius: 4px; background: #fbfbf9; }
+.macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 900px) { .macro-grid { grid-template-columns: 1fr; } }
+.macro-box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; }
+.macro-box-h { font-weight: 600; font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.macro-expl { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+.macro-expl strong { color: var(--ink); }
+.macro-val { margin-top: 10px; }
+.macro-val-h { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.macro-val-note { font-size: 11px; color: var(--muted); font-style: italic; }
 .synoptic .title { font-weight: 600; font-size: 13px; margin-bottom: 4px; color: var(--ink); }
 @media (max-width: 900px) { .synoptic { grid-template-columns: 1fr; } }
 
@@ -138,6 +147,8 @@ a { color: var(--accent); }
 .exp-chip.exp-on { background: var(--green); color: #fff; }
 .exp-chip.exp-off { background: var(--grey-soft); color: var(--muted); }
 .today-card .fcst-note { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.today-card .window-note { font-size: 11px; color: var(--muted); margin: 2px 0 4px; }
+.today-card .live-note { font-size: 11px; color: var(--accent); background: #eef4f9; border-radius: 5px; padding: 4px 7px; margin-top: 5px; }
 .today-card .warn-banner { background: var(--red-soft); color: var(--red); font-size: 11px; font-weight: 600; padding: 4px 7px; border-radius: 5px; margin: 4px 0 6px; }
 .today-card .dw-note { font-size: 11px; color: var(--green); margin-top: 4px; }
 .today-card .dw-note a { color: var(--green); font-weight: 600; }
@@ -153,8 +164,8 @@ a { color: var(--accent); }
 
 <header>
   <div>
-    <h1>Wingfoiling forecast — 12 spots near Zurich</h1>
-    <div class="sub">Origin: Sihlhölzli, 8003 Zürich · Beginner target: ≥ 12 kn consistent</div>
+    <h1>Wingfoiling forecast — key spots near Zurich</h1>
+    <div class="sub">Driving start point: Sihlhölzli, 8003 Zürich · target wind conditions: ≥ 12 kn consistent</div>
   </div>
   <div>
     <button class="btn" onclick="loadAll()">Refresh forecast</button>
@@ -162,6 +173,47 @@ a { color: var(--accent); }
   </div>
 </header>
 
+<h2>Macro wind conditions</h2>
+<p class="sub" style="margin:-2px 0 12px;">The three large-scale winds that drive these spots. Each box: when it is active and where, which spots below it hits, the multi-day Δp trend (from today), and the live ground check.</p>
+<div class="macro-grid">
+
+  <div class="macro-box">
+    <div class="macro-box-h">Föhn <span id="foehnChip" class="exp-chip exp-off">…</span></div>
+    <div class="macro-expl">
+      Warm, dry downslope wind — felt on the side it heads <em>toward</em> (Δp Lugano−Zürich).
+      <strong>South Föhn</strong> (≥ +4): pours into the <em>northern</em> valleys — hits Urnersee, Walensee, Thunersee, Sihlsee, Alpnachsee (strong wind, gusty).
+      <strong>North Föhn</strong> (≤ −4): pours into Ticino — suppresses the Inverna/Breva at <em>Lago Maggiore &amp; Dervio</em>.
+      Ground guide at Altdorf: +4 ≈ 15-25 kn S, +6-8 ≈ 25-40 kn (expert).
+    </div>
+    <div id="foehnChart" class="dp-chart">computing…</div>
+    <div class="macro-val"><div class="macro-val-h">Ground check</div><div id="foehnValidators">loading…</div></div>
+  </div>
+
+  <div class="macro-box">
+    <div class="macro-box-h">Bise <span id="biseChip" class="exp-chip exp-off">…</span></div>
+    <div class="macro-expl">
+      Cold, dry NE wind that does <em>not</em> cross the Alps — it flows alongside them on the northern side, channelled along the Swiss Plateau from the Bodensee down to Lake Geneva (Δp Geneva−Güttingen).
+      Drives the <em>northern lakes</em>: Bodensee, Wollishofen (Lake Zürich), Zugersee, Greifensee, Pfäffikersee.
+      Ground guide at Payerne: +4 ≈ 10-15 kn NE, +6 ≈ 15-20, +8 ≈ 20-25 (overpowered).
+    </div>
+    <div id="biseChart" class="dp-chart">computing…</div>
+    <div class="macro-val"><div class="macro-val-h">Ground check</div><div id="biseValidators">loading…</div></div>
+  </div>
+
+  <div class="macro-box">
+    <div class="macro-box-h">South-side thermal — Inverna / Breva</div>
+    <div class="macro-expl">
+      The S afternoon thermal on the southern lakes, building on sunny, weak-gradient days from ~midday to sunset.
+      Drives <em>Lago Maggiore</em> (Inverna) and <em>Lago di Como / Dervio</em> (Breva). Killed by North Föhn (negative Δp Lugano−Zürich).
+      The Garda Ora (Δp Bozen−Brescia) is a same-day proxy: positive = Ora on Garda → Inverna likely.
+    </div>
+    <img src="https://profiwetter.ch/wind_garda_de.png" alt="Garda Ora proxy chart" loading="lazy" style="width:100%;height:auto;border-radius:4px;background:#fbfbf9;min-height:120px;">
+    <div class="macro-val"><div class="macro-val-h">Ground check</div><div class="macro-val-note">No MeteoSwiss validator here — check the spot's own live station (Locarno / Brissago / Dervio) and webcam.</div></div>
+  </div>
+
+</div>
+
+<h2>Per-spot probability — today + next 5 days</h2>
 <div class="legend">
   <span><span class="swatch" style="background:var(--green-soft); border:1px solid var(--green)"></span>green — go (≥ 70)</span>
   <span><span class="swatch" style="background:var(--yellow-soft); border:1px solid var(--yellow)"></span>yellow — maybe (40-69)</span>
@@ -169,51 +221,9 @@ a { color: var(--accent); }
   <span><span class="swatch" style="background:var(--grey-soft); border:1px solid var(--grey)"></span>no data</span>
   <span>Click any spot row → daily details &amp; heuristic.</span>
 </div>
+<div id="gridContainer" class="loading">Loading forecast from Open-Meteo…</div>
 
-<h2>Synoptic context (live)</h2>
-<div class="verify-note" style="margin-bottom:14px;font-size:12.5px;">
-  <strong>Reading the Δp charts — which side of the Alps gets the wind.</strong><br>
-  <strong>Föhn is felt on the side the wind is heading toward.</strong> A föhn is a warm, dry wind that pours down the lee slope of the Alps; which side it hits depends on which way the pressure pushes the air. Positive Δp Lugano−Zürich (≥ +4) = <em>south</em> föhn descending warm and gusty into the <em>northern</em> valleys (⚠ Urnersee / Walensee / Thunersee), with rain on Ticino. Negative (≤ −4) = <em>north</em> föhn descending into <em>Ticino</em> on the south side — it clears the south but kills the Inverna on Lago Maggiore.<br>
-  <strong>Bise is a north-side-only wind.</strong> It isn't a cross-Alpine wind at all: a cold, dry north-easterly channelled along the Swiss Plateau — the lowland trough between the Jura and the Alps — running NE→SW from Lake Constance (Bodensee) down toward Lake Geneva. It drives the northern lakes (Wollishofen, Greifensee, Zugersee, Bodensee); the Alps wall it off, so Ticino never sees a bise.
-</div>
-<div class="synoptic">
-  <figure>
-    <div class="title">Föhn — Δp Lugano − Zürich</div>
-    <div id="foehnChart" class="dp-chart">computing…</div>
-    <figcaption>
-      Positive = south Föhn risk on north side of Alps.<br>
-      &le; −4: N Föhn (kills Inverna). −3..+3: neutral, thermal-friendly ✅. +4: S Föhn breaks into Alpine valleys (Urnersee/Walensee/Thunersee gusty ⚠). +8: hits lowlands.
-    </figcaption>
-  </figure>
-  <figure>
-    <div class="title">Bise — Δp Geneva − Güttingen</div>
-    <div id="biseChart" class="dp-chart">computing…</div>
-    <figcaption>
-      Positive = NE Bise active over Swiss Plateau.<br>
-      ≤ 0: no Bise. +1..+3: weak. +4: sweet spot for Wollishofen/Greifensee/Zugersee ✅. +6: solid 15-20 kn. ≥ +8: overpowered for beginner.
-    </figcaption>
-  </figure>
-  <figure>
-    <div class="title">Garda — Δp Bozen − Brescia (Inverna proxy)</div>
-    <img src="https://profiwetter.ch/wind_garda_de.png" alt="Garda Ora chart" loading="lazy">
-    <figcaption>
-      Positive = Ora on Garda → Inverna on Lago Maggiore ✅. Negative = Peler/N wind, Inverna suppressed.
-    </figcaption>
-  </figure>
-</div>
-
-<h3 style="margin-top:24px;">Macro-pattern ground validators</h3>
-<div class="verify-note" style="padding:10px 14px;font-size:12px;">
-  <strong>Cross-check the Δp charts against actual wind on the ground.</strong> Bise on the Plateau should produce NE wind at Payerne / Wynau / Güttingen. South Föhn should produce S wind at Altdorf / Vaduz / Glarus. A strong Δp with weak readings here = the synoptic pattern hasn't materialised yet (and per-spot forecasts that depend on it are unreliable).
-  <div style="margin-top:8px;padding-top:7px;border-top:1px dashed var(--line);">
-    <strong>Roughly what each Δp should put on the ground</strong> (sustained wind; gusts run higher):<br>
-    <strong>Bise (Δp Geneva−Güttingen)</strong> at Payerne — +4 ≈ 10-15 kn NE · +6 ≈ 15-20 kn · +8 ≈ 20-25 kn (beginner-overpowered).<br>
-    <strong>South Föhn (Δp Lugano−Zürich)</strong> at Altdorf — +4 ≈ 15-25 kn S (gusty) · +6-8 ≈ 25-40 kn S (expert / dangerous).
-  </div>
-</div>
-<div id="validatorsContainer" class="validators-wrap loading">Loading macro validators…</div>
-
-<h2>Today now — verify before you drive</h2>
+<h2>Check before you go</h2>
 <div class="verify-note">
   <strong>Why this matters.</strong> Open-Meteo is a global model — it misses lake-specific microclimate. Before committing to a drive, cross-check the dashboard against (a) the spot's live wind station, (b) the live webcam, and (c) the synoptic charts above. Each card's badge shows whether the spot is <em>actually rideable right now</em> from the live wind (green = good wind for wingfoiling), regardless of whether the model agrees; the small line underneath shows how the live reading compares to the forecast, so a wide gap flags that the model is off — trust the live station / webcam first.
   <details style="margin-top:10px;">
@@ -236,9 +246,6 @@ a { color: var(--accent); }
   </details>
 </div>
 <div id="todayContainer" class="today-wrap loading">Loading current conditions…</div>
-
-<h2>Per-spot probability — today + next 5 days</h2>
-<div id="gridContainer" class="loading">Loading forecast from Open-Meteo…</div>
 
 <div class="footer">
   <p><strong>How scores are computed.</strong> Each spot's score combines forecast wind speed (12:00-18:00 local), gusts, afternoon cloud cover, day-night ΔT, and the Föhn/Bise pressure differentials computed from Open-Meteo mean-sea-level (MSL) pressure at four reference cities (Lugano, Zürich, Geneva, Güttingen). The heuristic per spot mirrors the checklists in the planning doc.</p>
@@ -269,10 +276,10 @@ const SPOTS = [
     driver: 'Bise NE',
     heuristic: 'Bise Δp Geneva−Güttingen ≥ +4 hPa = on; ≥ +6 = solid 15+ kn; ≥ +8 = overpowered (skip).',
     links: [
-      { type: 'station', label: 'Mythenquai (Wasserschutzpolizei) — live readout', location: 'SW shore basin, lake-level, ~1 km NE of Wollishofen launch', url: 'https://www.tecson-data.ch/zurich/mythenquai/index.php' },
-      { type: 'station', label: 'Tiefenbrunnen (Wasserschutzpolizei) — live readout', location: 'NE shore basin, lake-level, ~3 km across the bay (Bise upwind)', url: 'https://www.tecson-data.ch/zurich/tiefenbrunnen/index.php' },
-      { type: 'cam', label: 'Mythenquai WaPo harbour cam', location: 'SW shore, over the water at the police harbour', url: 'https://mythenquai.redics.ch/login.cgi?l=1' },
-      { type: 'forecast', label: 'Windguru — Zürichsee unteres Becken', location: 'model point on the lower basin, just outside Zürich city', url: 'https://www.windguru.cz/57016' }
+      { type: 'station', label: 'Mythenquai (Wasserschutzpolizei)', location: 'W shore on the lake', side: 270, url: 'https://www.tecson-data.ch/zurich/mythenquai/index.php' },
+      { type: 'station', label: 'Tiefenbrunnen (Wasserschutzpolizei)', location: 'E shore on the lake', side: 90, url: 'https://www.tecson-data.ch/zurich/tiefenbrunnen/index.php' },
+      { type: 'cam', label: 'Mythenquai WaPo harbour cam', location: 'W shore, over the water at the police harbour', url: 'https://mythenquai.redics.ch/login.cgi?l=1' },
+      { type: 'forecast', label: 'Windguru — Zürichsee unteres Becken', location: 'So called "lower basin" is just outside Zurich city', url: 'https://www.windguru.cz/57016' }
     ],
     score(m) {
       const b = m.biseDp;
@@ -290,9 +297,9 @@ const SPOTS = [
     driver: 'Bise NE',
     heuristic: 'Bise Δp ≥ +4 hPa works at Cham. Föhn rarely reaches. No dedicated wing school.',
     links: [
-      { type: 'station', label: 'Yacht Club Zug — Wind & Wetter', location: 'Zug sits at the N end of the lake; waterfront sensor over the water at the club', url: 'https://www.yczug.ch/ycz_services/wind_und_wetter' },
-      { type: 'station', label: 'Arth (Wunderground PWS IARTH43)', location: 'S end of the lake (Arth) — picks up N wind running down the lake', url: 'https://www.wunderground.com/dashboard/pws/IARTH43?cm_ven=localwx_pwsdash' },
-      { type: 'station', label: 'Oberwil bei Zug (Wunderground PWS IOBERW62)', location: 'E side of the lake — E-side wind reference', url: 'https://www.wunderground.com/weather/ch/oberwil-bei-zug/IOBERW62' },
+      { type: 'station', label: 'Yacht Club Zug — Wind & Wetter', location: 'N shore on the lake', side: 0, url: 'https://www.yczug.ch/ycz_services/wind_und_wetter' },
+      { type: 'station', label: 'Arth (Wunderground PWS IARTH43)', location: 'S end of the lake (Arth) — picks up N wind running down the lake', side: 180, url: 'https://www.wunderground.com/dashboard/pws/IARTH43?cm_ven=localwx_pwsdash' },
+      { type: 'station', label: 'Oberwil bei Zug (Wunderground PWS IOBERW62)', location: 'E shore on the lake — reference for W wind', side: 90, url: 'https://www.wunderground.com/weather/ch/oberwil-bei-zug/IOBERW62' },
       { type: 'cam', label: 'Yacht Club Zug — waterfront cam', location: 'Zug waterfront looking out over the lake', url: 'https://www.yczug.ch/ycz_services/webcam' },
       { type: 'forecast', label: 'Windguru — Zugersee vor Zug', url: 'https://www.windguru.cz/57008' }
     ],
@@ -312,8 +319,8 @@ const SPOTS = [
     warn: '⚠ Nature reserve — wing foiling may be restricted or prohibited; check local zones/signage before launching.',
     heuristic: 'Bise Δp ≥ +4 hPa = on. Short fetch — gusty, choppy. Föhn irrelevant here.',
     links: [
-      { type: 'station', label: 'Greifenseewetter (Uster)', location: 'SE shore (Seerettung Uster), lake-level, ~0.3 km from Niederuster launch', url: 'https://www.greifenseewetter.ch/' },
-      { type: 'station', label: 'Winduster (Schwerzenbach)', location: 'NW corner, on-water-ish, ~2 km from launch — Bise upwind', url: 'https://winduster.aeppli.org/' },
+      { type: 'station', label: 'Greifenseewetter (Uster)', location: 'SE shore (Seerettung Uster), lake-level, ~0.3 km from Niederuster launch', side: 135, url: 'https://www.greifenseewetter.ch/' },
+      { type: 'station', label: 'Winduster (Schwerzenbach)', location: 'NW corner, on-water-ish, ~2 km from launch — Bise upwind', side: 315, url: 'https://winduster.aeppli.org/' },
       { type: 'cam', label: 'Greifenseewetter — live lake cam', location: 'SE shore, lake-surface image + wind data', url: 'https://greifenseewetter.ch/webcam2.htm' },
       { type: 'forecast', label: 'Windguru — Greifensee', url: 'https://www.windguru.cz/319879' }
     ],
@@ -332,7 +339,7 @@ const SPOTS = [
     warn: '⚠ Nature reserve (Pfäffikersee/Auslikon) — wing foiling may be restricted or prohibited; check local zones/signage before launching.',
     heuristic: 'Backup spot. Needs Bise Δp ≥ +6 hPa for confident 12 kn (smaller fetch).',
     links: [
-      { type: 'station', label: 'Wetter-Seegräben', location: 'NE shore (Seegräben), lake-level, ~1.2 km E across from Auslikon launch', url: 'https://www.wetter-seegraeben.ch/' },
+      { type: 'station', label: 'Wetter-Seegräben', location: 'NE shore (Seegräben), lake-level, ~1.2 km E across from Auslikon launch', side: 45, url: 'https://www.wetter-seegraeben.ch/' },
       { type: 'station', label: 'Greifenseewetter', location: 'on Greifensee (~6 km NW) — same Bise regime', url: 'https://www.greifenseewetter.ch/' },
       { type: 'station', label: 'Winduster (Schwerzenbach)', location: 'on Greifensee NW corner (~7 km NW)', url: 'https://winduster.aeppli.org/' },
       { type: 'station', label: 'Zürich-Fluntern (MeteoSwiss SMA)', location: 'W, ~25 km — Bise upwind ref', url: 'https://www.meteoswiss.admin.ch/services-and-publications/applications/measurement-values.html?param=ch.meteoschweiz.messwerte-windgeschwindigkeit-10min&station=SMA' },
@@ -349,9 +356,10 @@ const SPOTS = [
     }
   },
   {
-    id: 'sihlsee', name: 'Sihlsee — Willerzell', lat: 47.122, lon: 8.768,
+    id: 'sihlsee', name: 'Sihlsee — Euthal', lat: 47.103, lon: 8.790,
     drive: '~40-45 min drive', cluster: 'Alpine W/thermal',
-    driver: 'Westerly / thermal',
+    driver: 'Westerly / thermal', thermalDir: 270,
+    window: 'Thermal best Apr-Oct, afternoon ~13:00-18:00 on clear, weak-gradient days; post-frontal W any season.',
     heuristic: 'Best on post-frontal W or clear-sky afternoon thermal. Föhn turbulent. Cold water.',
     note: 'thermal is often marginal — whitecaps can be deceptive, base wind frequently only ~10 kn (7-14 kn band). A light-wind / efficiency-foil venue more than a solid 12+ spot. The southern Euthal basin is a protected reserve — launch only from sanctioned zones (Pro Kitesports / Willerzell, Roblosen).',
     links: [
@@ -375,9 +383,11 @@ const SPOTS = [
   {
     id: 'alpnachsee', name: 'Alpnachsee', lat: 46.943, lon: 8.272,
     drive: '~50-55 min drive', cluster: 'Alpine thermal',
-    driver: 'Day-night thermal (E)',
+    driver: 'Day-night thermal (ENE)', thermalDir: 70,
+    window: 'Thermal Apr-Jun peak, ~11:00-16:00 on sunny days (cloud < 30%, ΔT ≥ 10°C).',
+    liveNote: 'Station usually under-rates the on-water wind by ~5 kn — cleaner air flow and a local acceleration out on the lake. Add ~5 kn to what it reads.',
     heuristic: 'Cloud < 30%, ΔT ≥ 10 °C, Föhn Δp < +3 hPa = strong thermal day. April-June peak.',
-    note: 'thermal can hit 15-20 kn but is punchy and localized — the working wind sits in a narrow corridor down the centre of the basin, so stay in that band. Keep clear of the protected delta marshland and the adjacent Alpnach military airfield; respect the marked zones.',
+    note: 'thermal can hit 15-20 kn but is punchy and localized — the working wind sits in a narrow corridor down the centre of the basin, so stay in that band. NOTE: the Surfstation wind station is NOT at the windiest part of the spot — out on the water the air is cleaner and there is a local acceleration (venturi), so actual conditions are often >5 kn above what the station reads. Keep clear of the protected delta marshland and the adjacent Alpnach military airfield; respect the marked zones.',
     links: [
       { type: 'station', label: 'Surfstation Alpnachersee', location: 'on-site, S shore, lake-level — at the launch', url: 'https://www.surfstation-alpnachersee.ch/webcam-windstation' },
       { type: 'cam', label: 'Surfstation Alpnachersee — on-site cam & windstation', location: 'S shore, at the launch — the spot itself', url: 'https://www.surfstation-alpnachersee.ch/webcam-windstation' },
@@ -403,7 +413,8 @@ const SPOTS = [
   {
     id: 'walensee', liveStation: { type: 'existenz', loc: 'QUI', label: 'Quinten (MeteoSwiss QUI)', url: 'https://www.meteoswiss.admin.ch/services-and-publications/applications/measurement-values.html#param=messwerte-windgeschwindigkeit-kmh-10min&table=false&station=QUI' }, name: 'Walensee — Walenstadt', lat: 47.124, lon: 9.310,
     drive: '~55-65 min drive', cluster: 'Alpine thermal',
-    driver: 'Westerly thermal',
+    driver: 'Westerly thermal', thermalDir: 290,
+    window: 'W thermal May-Sep, ~13:00-18:00 (if blowing at Quinten by 15:00, reaches Walenstadt 16:00-18:00).',
     heuristic: 'Afternoon W thermal. Skip if Föhn Δp ≥ +4 (gusty/dangerous).',
     note: 'severe lee effects — near the Walenstadt shore the sheer rock faces can drop the wind abruptly from ~15 kn to near-zero, so a lull can strand you close in. Stay within self-rescue range, wear leash + flotation, and do not commit to the far side without margin.',
     links: [
@@ -425,7 +436,8 @@ const SPOTS = [
   {
     id: 'urnersee', liveStation: { type: 'holfuy',    id: 1399,            label: 'Isleten Bachdelta (Holfuy 1399)', url: 'https://holfuy.com/en/weather/1399' }, name: 'Urnersee — Isleten', lat: 46.917, lon: 8.602,
     drive: '~55-65 min drive', cluster: 'Alpine thermal',
-    driver: 'Thermal-only days (Föhn = expert)',
+    driver: 'Thermal-only days (Föhn = expert)', thermalDir: 315,
+    window: 'NW thermal May-Sep, builds ~11:00-14:00 on high-pressure days.',
     heuristic: 'Beginner only on thermal days with low Föhn risk (Δp 0..+3). Föhn = intermediate+.',
     links: [
       { type: 'station', label: 'Isleten Bachdelta (Holfuy 1399)', location: 'on the lake, W side of the spot (Bachdelta launch) — at the spot', side: 270, url: 'https://holfuy.com/en/weather/1399' },
@@ -469,7 +481,8 @@ const SPOTS = [
   {
     id: 'thunersee', name: 'Thunersee — Spiez (Honu)', lat: 46.692, lon: 7.681,
     drive: '~95-105 min drive', cluster: 'Weekend',
-    driver: 'Afternoon thermal W',
+    driver: 'Afternoon thermal W', thermalDir: 270,
+    window: 'Afternoon thermal Jun-Aug, ~13:00-15:00+ on warm, weak-gradient days.',
     heuristic: 'Weak gradient + sun = thermal. Skip if Föhn Δp ≥ +4 (Berner Föhn).',
     links: [
       { type: 'station', label: 'Thun Strandbad (Windfinder report)', location: 'W side of the lake (Thun Strandbad) — at the water', side: 270, url: 'https://de.windfinder.com/report/thun_strandbad' },
@@ -493,7 +506,8 @@ const SPOTS = [
   {
     id: 'lagomaggiore', name: 'Lago Maggiore — Pino Tronzano', lat: 46.044, lon: 8.720,
     drive: '~2 h 15-30 min drive', cluster: 'Weekend',
-    driver: 'Inverna (S afternoon thermal)',
+    driver: 'Inverna (S afternoon thermal)', thermalDir: 180,
+    window: 'Inverna May-Sep, ~12:00-sunset, almost daily on sunny days.',
     heuristic: 'Föhn Δp 0..+4 = Inverna develops. Negative = N Föhn replaces Inverna.',
     links: [
       { type: 'station', label: 'Isole di Brissago (Windfinder report)', location: 'W/Swiss shore, N of Pino — Inverna downwind end', side: 315, url: 'https://de.windfinder.com/report/isole_di_brissago' },
@@ -518,7 +532,8 @@ const SPOTS = [
   {
     id: 'dervio', name: 'Lago di Como — Dervio', lat: 46.078, lon: 9.307,
     drive: '~2 h 45 - 3 h drive', cluster: 'Weekend',
-    driver: 'Breva (S afternoon thermal)',
+    driver: 'Breva (S afternoon thermal)', thermalDir: 180,
+    window: 'Breva Apr-Sep, ~12:00 → sunset (rotates side-offshore after ~16:00).',
     heuristic: 'Breva S thermal builds ~12:00 → sunset (15-18 kn), Apr-Sep, accelerated by the venturi where the lake narrows at Dervio. Morning Tivano is N. Global models read low here — trust the thermal; BrevaGuru is the local specialist.',
     note: 'Breva often 12-22 kn at peak. After ~16:00 it tends to rotate side-offshore and turn gappy — plan your last runs so returns to the beach stay easy. Lake Como effectively requires a lifejacket; carry a flotation aid.',
     links: [
@@ -541,7 +556,8 @@ const SPOTS = [
   {
     id: 'silvaplana', liveStation: { type: 'existenz',  loc: 'SIA',          label: 'Sils-Maria (MeteoSwiss SIA)', url: 'https://www.meteoswiss.admin.ch/services-and-publications/applications/measurement-values.html#param=messwerte-windgeschwindigkeit-kmh-10min&table=false&station=SIA' }, name: 'Silvaplana', lat: 46.464, lon: 9.795,
     drive: '~2 h 30 - 3 h drive', cluster: 'Weekend',
-    driver: 'Maloja thermal (SW)',
+    driver: 'Maloja thermal (SW)', thermalDir: 225,
+    window: 'Maloja Jun-Sep (~80% of days), ~12:00-17:00, easing 18:00-19:00.',
     heuristic: 'Clear sky + weak SW flow = Maloja. Active ~80% of summer days.',
     note: 'Maloja is exceptionally constant (12-25 kn) but a northerly pressure gradient kills it instantly. Cold water rarely >16 °C even mid-summer — full thermal protection mandatory. Launch only from the official Kitebeach and respect the foil/swimmer time zoning.',
     links: [
@@ -658,6 +674,8 @@ function dpChartSVG(times, series, nowIdx, opts) {
   const xAt = i => padL + (n <= 1 ? 0 : (i / (n - 1)) * (W - padL - padR));
   let lo = Math.min(0, ...series), hi = Math.max(0, ...series);
   lo = Math.floor(lo) - 1; hi = Math.ceil(hi) + 1;
+  hi = Math.max(hi, 5);  // always show to at least +5 at the top
+  (opts.bands||[]).forEach(b=>{ if(/green/i.test(b.color)){ if(b.from>-50) lo=Math.min(lo,b.from); if(b.to<50) hi=Math.max(hi,b.to); } }); // keep the green zone in view
   if (hi - lo < 6) hi = lo + 6;
   const yAt = v => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
   const clamp = v => Math.min(Math.max(v, lo), hi);
@@ -726,7 +744,7 @@ function renderSynopticCharts(data) {
   const bEl = document.getElementById('biseChart');
   if (fEl) fEl.innerHTML = dpChartSVG(times, foehn, nowIdx, {
     guides: [4, -4],
-    bands: [ { from: 4, to: 999, color: 'var(--red-soft)' }, { from: -999, to: -4, color: 'var(--yellow-soft)' } ],
+    bands: [ { from: 4, to: 999, color: 'var(--green-soft)' }, { from: -999, to: -4, color: 'var(--yellow-soft)' } ],
   });
   if (bEl) bEl.innerHTML = dpChartSVG(times, bise, nowIdx, {
     guides: [4, 8],
@@ -809,13 +827,9 @@ async function fetchLiveStation(spot) {
 const VALIDATORS = {
   bise: [
     { code: 'PAY', name: 'Payerne',   note: 'middle of Plateau — canonical Bise ref',  expectDir: 45 },
-    { code: 'WYN', name: 'Wynau',     note: 'east-central Plateau',                     expectDir: 45 },
-    { code: 'GUT', name: 'Güttingen', note: 'Bodensee shore — downstream end',          expectDir: 45 },
   ],
   foehn: [
     { code: 'ALT', name: 'Altdorf',   note: 'Reuss valley — THE Föhn benchmark',        expectDir: 180 },
-    { code: 'VAD', name: 'Vaduz',     note: 'Rhine valley',                              expectDir: 180 },
-    { code: 'GLA', name: 'Glarus',    note: 'Linth valley',                              expectDir: 180 },
   ],
 };
 
@@ -825,8 +839,9 @@ function dirsClose(a, b, tol) {
 }
 
 async function renderMacroValidators(data) {
-  const container = document.getElementById('validatorsContainer');
-  if (!container) return;
+  const fEl = document.getElementById('foehnValidators');
+  const bEl = document.getElementById('biseValidators');
+  if (!fEl && !bEl) return;
   const codes = [...VALIDATORS.bise, ...VALIDATORS.foehn].map(s => s.code).join(',');
   let payload = [];
   try {
@@ -835,8 +850,8 @@ async function renderMacroValidators(data) {
     const j = await r.json();
     payload = j?.payload || [];
   } catch (e) {
-    container.className = '';
-    container.innerHTML = `<div class="error">Could not load validators (${e.message}). MeteoSwiss SMN data via Existenz.ch was unreachable.</div>`;
+    const msg = `<div class="error" style="font-size:11px;">Ground station unreachable (${e.message}).</div>`;
+    if (fEl) fEl.innerHTML = msg; if (bEl) bEl.innerHTML = msg;
     return;
   }
 
@@ -851,11 +866,11 @@ async function renderMacroValidators(data) {
   const biseExpected  = biseDp  != null && biseDp  >= 3;   // NE Bise developing on the Plateau
   const foehnExpected = foehnDp != null && foehnDp >= 4;   // S Föhn pushing into the Alpine valleys
 
-  function expectChip(expected, dp, onLabel, offLabel) {
+  function setChip(id, expected, dp, onLabel, offLabel) {
+    const el = document.getElementById(id); if (!el) return;
     const dpStr = dp != null ? `Δp ${dp >= 0 ? '+' : ''}${dp.toFixed(1)}` : 'Δp —';
-    return expected
-      ? `<span class="exp-chip exp-on">✓ ${onLabel} · ${dpStr}</span>`
-      : `<span class="exp-chip exp-off">${offLabel} · ${dpStr}</span>`;
+    el.className = 'exp-chip ' + (expected ? 'exp-on' : 'exp-off');
+    el.textContent = (expected ? '✓ ' : '') + (expected ? onLabel : offLabel) + ' · ' + dpStr;
   }
 
   function card(spec, expected) {
@@ -893,21 +908,10 @@ async function renderMacroValidators(data) {
     </div>`;
   }
 
-  // Column order matches the synoptic context above: Föhn first, then Bise.
-  const html = `
-    <div class="validators-grid">
-      <div class="validators-col">
-        <div class="validators-title">South Föhn validators (expect S wind in the valleys) ${expectChip(foehnExpected, foehnDp, 'S Föhn expected', 'no S Föhn expected')}</div>
-        ${VALIDATORS.foehn.map(s => card(s, foehnExpected)).join('')}
-      </div>
-      <div class="validators-col">
-        <div class="validators-title">Bise validators (expect NE wind) ${expectChip(biseExpected, biseDp, 'Bise expected', 'no Bise expected')}</div>
-        ${VALIDATORS.bise.map(s => card(s, biseExpected)).join('')}
-      </div>
-    </div>
-  `;
-  container.className = 'validators-wrap';
-  container.innerHTML = html;
+  setChip('foehnChip', foehnExpected, foehnDp, 'S Föhn expected', 'no S Föhn expected');
+  setChip('biseChip',  biseExpected,  biseDp,  'Bise expected',   'no Bise expected');
+  if (fEl) fEl.innerHTML = VALIDATORS.foehn.map(s => card(s, foehnExpected)).join('');
+  if (bEl) bEl.innerHTML = VALIDATORS.bise.map(s => card(s, biseExpected)).join('');
 }
 
 // Pick the station that is most DOWNWIND of the lake for the current wind, i.e. on the
@@ -948,8 +952,8 @@ async function renderTodayCheck(data) {
     // Is the displayed number from a real anemometer, or the Open-Meteo model?
     const usingLive = !!(live && live.wind != null);
     const actualWind = usingLive ? live.wind : c.wind_speed_10m;
-    const actualGust = usingLive ? live.gust : c.wind_gusts_10m;
-    const actualDir  = usingLive ? live.dir  : c.wind_direction_10m;
+    const actualGust = (usingLive && live.gust != null) ? live.gust : c.wind_gusts_10m;
+    const actualDir  = (usingLive && live.dir  != null) ? live.dir  : c.wind_direction_10m;
 
     // Always name the station behind the reading. For model-fallback spots, point to the
     // spot's primary on-lake station so the (often under-read) model value can be verified.
@@ -964,7 +968,7 @@ async function renderTodayCheck(data) {
       const refTxt = refStation
         ? ` — check live station: <a href="${refStation.url}" target="_blank">${refStation.label}</a>`
         : '';
-      srcHtml = `⚠ Open-Meteo model (no live anemometer wired; can read low at sheltered lake spots)${refTxt}`;
+      srcHtml = `⚠ Wind info not measured but from the Open-Meteo model${refTxt}`;
     }
 
     // Forecast for now
@@ -1011,6 +1015,7 @@ async function renderTodayCheck(data) {
     html += `<div class="today-card">
       <div class="name">${spot.name}</div>
       <div class="drive">${spot.drive} · ${spot.driver}</div>
+      ${spot.window ? `<div class="window-note">📅 ${spot.window}</div>` : ''}
       ${spot.warn ? `<div class="warn-banner">${spot.warn}</div>` : ''}
       <div class="row"><span class="k">Now (kn / gust)</span><span class="v">${windText} / ${gustText}</span></div>
       <div class="row"><span class="k">Direction</span><span class="v">${dirText}</span></div>
@@ -1019,6 +1024,7 @@ async function renderTodayCheck(data) {
       ${fcstNote ? `<div class="fcst-note">${fcstNote}</div>` : ''}
       ${dwNoteHtml}
       <div class="src">${srcHtml}</div>
+      ${spot.liveNote ? `<div class="live-note">↑ ${spot.liveNote}</div>` : ''}
       <div class="links">${linksHtml}</div>
     </div>`;
   });
@@ -1045,6 +1051,33 @@ function classify(score) {
   return 'red';
 }
 
+// ===== Thermic-vs-macro wind tension =====
+// A spot's thermal blows FROM spot.thermalDir on sunny days. A substantive synoptic
+// ("macro") wind that ALIGNS reinforces it; one that OPPOSES degrades it / turns it
+// gusty (flagged orange). This is a v1 calibration — thresholds are easy to tune.
+function angDiff(a, b) { return Math.abs(((a - b + 540) % 360) - 180); }
+function macroWind(m) {
+  if (m.biseDp  >= 3)  return { dir: 45,  kn: 6 + m.biseDp * 1.8,     name: 'Bise' };
+  if (m.foehnDp >= 4)  return { dir: 180, kn: 8 + m.foehnDp * 2.0,    name: 'S Föhn' };
+  if (m.foehnDp <= -3) return { dir: 0,   kn: 8 + (-m.foehnDp) * 2.0, name: 'N Föhn' };
+  return null;
+}
+function applyThermalMacroTension(spot, m, r) {
+  if (spot.thermalDir == null || m.cloud >= 55) return r;   // no real thermal → nothing to oppose
+  const macro = macroWind(m);
+  if (!macro || macro.kn < 12) return r;                    // need a substantive macro wind
+  const diff = angDiff(macro.dir, spot.thermalDir);
+  if (diff <= 60) {                                         // macro aligns → reinforces the thermal
+    if (r.score >= 40 && r.score < 75) { r.score = Math.min(82, r.score + 12); r.note += ` · ${macro.name} aligns with the ${degToCompass(spot.thermalDir)} thermal`; }
+  } else if (diff >= 120) {                                 // macro opposes the thermal
+    if (macro.kn >= 20 && r.score >= 60) { r.score = 50; r.label = '⚠ thermic vs macro'; r.note = `${macro.name} ${macro.kn.toFixed(0)} kn opposes the ${degToCompass(spot.thermalDir)} thermal — gusty / cancelling`; r.tension = true; }
+    else if (r.score >= 60) { r.score = 52; r.label = '⚠ thermic vs macro'; r.note = `${macro.name} (${macro.kn.toFixed(0)} kn) opposes the ${degToCompass(spot.thermalDir)} thermal`; r.tension = true; }
+    else { r.score = Math.max(15, r.score - 15); r.note += ` · opposed by ${macro.name}`; }
+  }
+  return r;
+}
+function scoreSpot(spot, m) { return applyThermalMacroTension(spot, m, spot.score(m)); }
+
 function render(data) {
   const container = document.getElementById('gridContainer');
   const ndays = data[0].daily.time.length;
@@ -1068,7 +1101,7 @@ function render(data) {
     for (let d = 0; d < ndays; d++) {
       try {
         const m = buildMetrics(data, i, d);
-        const r = spot.score(m);
+        const r = scoreSpot(spot, m);
         const cls = classify(r.score);
         const tip = `${r.label}\n${r.note}\nWind ${m.wind.toFixed(0)} kn, gust ${m.gust.toFixed(0)} kn\nCloud ${m.cloud.toFixed(0)}%, ΔT ${m.deltaT.toFixed(1)}°C\nFöhn Δp ${m.foehnDp.toFixed(1)} hPa, Bise Δp ${m.biseDp.toFixed(1)} hPa`;
         html += `<td><span class="cell ${cls}" title="${tip}"><span class="score">${r.score}</span><span class="label">${r.label}</span></span></td>`;
@@ -1143,6 +1176,160 @@ async function loadAll() {
 }
 
 loadAll();
+
+/* ===== Review mode — annotate directly on the rendered page =====
+   Only activates when the URL ends with #review (e.g. .../index.html#review).
+   Normal visitors never see it. Click any element to leave a comment; the
+   "Copy all" button exports a tagged list to paste back for editing. Notes are
+   saved in this browser (localStorage), so they survive reloads. */
+(function(){
+  function isReview(){ return /review/i.test(location.hash) || /(^|[?&])review(=|&|$)/i.test(location.search); }
+  if (!isReview()) return;
+
+  const LS_KEY = 'wf-review-notes-v1';
+  let notes = [];
+  try { notes = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e){ notes = []; }
+  const save = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(notes)); } catch(e){} };
+
+  const txt = el => (el ? el.textContent : '').replace(/\s+/g,' ').trim();
+  const clean = s => (s||'').replace(/\s+/g,' ').trim().slice(0,70);
+
+  // Curated annotatable targets → human-readable reference label
+  const TARGETS = [
+    ['header', () => 'Header'],
+    ['h2', el => 'Section: ' + clean(txt(el))],
+    ['.synoptic figure', el => 'Synoptic · ' + clean(txt(el.querySelector('.title')))],
+    ['.macro-box', el => 'Macro · ' + clean(txt(el.querySelector('.macro-box-h')))],
+    ['.today-card', el => 'Today · ' + clean(txt(el.querySelector('.name')))],
+    ['#gridContainer tr.toggle-row', el => 'Grid · ' + clean(txt(el.querySelector('.spot .name')))],
+    ['.footer', () => 'Footer'],
+  ];
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .rev-t{ cursor:crosshair; }
+    .rev-t:hover{ outline:1px dashed #2b5f8a; outline-offset:2px; background:rgba(43,95,138,0.05); }
+    .rev-t.rev-has{ outline:1px solid #e08900; outline-offset:2px; }
+    #revOverlay{ position:fixed; inset:0; pointer-events:none; z-index:9998; }
+    .rev-badge{ position:fixed; transform:translate(-50%,-50%); min-width:18px; height:18px; padding:0 2px; border-radius:9px; background:#c62828; color:#fff; font:11px/18px -apple-system,system-ui,sans-serif; text-align:center; cursor:pointer; pointer-events:auto; z-index:9999; box-shadow:0 1px 3px rgba(0,0,0,.3); }
+    #revPanel{ position:fixed; right:14px; bottom:14px; width:300px; max-height:62vh; display:flex; flex-direction:column; background:#fff; border:1px solid #ccc; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.2); z-index:10000; font:13px/1.4 -apple-system,system-ui,sans-serif; color:#1b1b1a; }
+    #revPanel h4{ margin:0; padding:10px 12px; border-bottom:1px solid #eee; font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
+    #revList{ overflow:auto; padding:4px 0; flex:1; }
+    .rev-item{ padding:6px 12px; border-bottom:1px solid #f2f2f2; }
+    .rev-item .r{ color:#2b5f8a; font-weight:600; font-size:11px; }
+    .rev-item .t{ color:#333; white-space:pre-wrap; }
+    .rev-item .x{ float:right; color:#999; cursor:pointer; padding-left:6px; }
+    #revPanel .btns{ display:flex; gap:6px; padding:8px 12px; border-top:1px solid #eee; }
+    #revPanel button{ flex:1; padding:6px; border:1px solid #ccc; border-radius:6px; background:#f7f7f5; cursor:pointer; font-size:12px; }
+    #revPanel button.primary{ background:#2b5f8a; color:#fff; border-color:#2b5f8a; }
+    #revHint{ font-size:11px; color:#6b6b67; padding:6px 12px; border-bottom:1px solid #f2f2f2; }
+    #revPop{ position:fixed; z-index:10001; width:264px; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.25); padding:8px; display:none; font:13px -apple-system,system-ui,sans-serif; }
+    #revPop textarea{ width:100%; height:66px; box-sizing:border-box; font:13px sans-serif; }
+    #revPop .pr{ font-size:11px; color:#2b5f8a; font-weight:600; margin-bottom:4px; }
+    #revPop .btns{ display:flex; gap:6px; margin-top:6px; }
+    #revPop button{ flex:1; padding:5px; border:1px solid #ccc; border-radius:6px; background:#f7f7f5; cursor:pointer; }
+    #revPop button.primary{ background:#2b5f8a; color:#fff; border-color:#2b5f8a; }
+  `;
+  document.head.appendChild(style);
+
+  const overlay = document.createElement('div'); overlay.id='revOverlay'; document.body.appendChild(overlay);
+  const panel = document.createElement('div'); panel.id='revPanel';
+  panel.innerHTML = '<h4><span>📝 Review mode</span><span id="revCount"></span></h4><div id="revHint">Click any element on the page to comment. Click a number to edit. Then “Copy all” and paste it back to me.</div><div id="revList"></div><div class="btns"><button id="revCopy" class="primary">Copy all</button><button id="revClear">Clear</button></div>';
+  document.body.appendChild(panel);
+  const pop = document.createElement('div'); pop.id='revPop';
+  pop.innerHTML = '<div class="pr" id="revPopRef"></div><textarea id="revPopText" placeholder="Type your comment…"></textarea><div class="btns"><button class="primary" id="revPopSave">Save</button><button id="revPopDel">Delete</button><button id="revPopCancel">Cancel</button></div>';
+  document.body.appendChild(pop);
+
+  const $ = id => document.getElementById(id);
+  let popRef = null;
+  function openPop(ref, x, y){
+    popRef = ref;
+    const existing = notes.find(n=>n.ref===ref);
+    $('revPopRef').textContent = ref;
+    $('revPopText').value = existing ? existing.text : '';
+    $('revPopDel').style.display = existing ? '' : 'none';
+    pop.style.display='block';
+    pop.style.left = Math.max(8, Math.min(x, window.innerWidth-272))+'px';
+    pop.style.top  = Math.max(8, Math.min(y, window.innerHeight-170))+'px';
+    $('revPopText').focus();
+  }
+  function closePop(){ pop.style.display='none'; popRef=null; }
+  $('revPopSave').onclick = ()=>{
+    const t = $('revPopText').value.trim();
+    const i = notes.findIndex(n=>n.ref===popRef);
+    if (t){ if(i>=0) notes[i].text=t; else notes.push({ref:popRef,text:t}); }
+    else if(i>=0) notes.splice(i,1);
+    save(); closePop(); render();
+  };
+  $('revPopDel').onclick = ()=>{ const i=notes.findIndex(n=>n.ref===popRef); if(i>=0)notes.splice(i,1); save(); closePop(); render(); };
+  $('revPopCancel').onclick = closePop;
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closePop(); });
+
+  $('revCopy').onclick = ()=>{
+    if(!notes.length){ flash('No notes yet'); return; }
+    const out = 'Dashboard review feedback — ' + new Date().toLocaleString() + '\n' + notes.map((n,i)=>`${i+1}. [${n.ref}] ${n.text}`).join('\n');
+    if(navigator.clipboard){ navigator.clipboard.writeText(out).then(()=>flash('Copied '+notes.length+' notes')).catch(()=>fallbackCopy(out)); }
+    else fallbackCopy(out);
+  };
+  function fallbackCopy(out){ const ta=document.createElement('textarea'); ta.value=out; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); flash('Copied'); }
+  $('revClear').onclick = ()=>{ if(confirm('Clear all review notes?')){ notes=[]; save(); render(); } };
+  function flash(msg){ const c=$('revCount'); c.textContent=msg; setTimeout(()=>{ c.textContent=notes.length+' notes'; },1300); }
+
+  function tag(){
+    TARGETS.forEach(([sel,labeler])=>{
+      document.querySelectorAll(sel).forEach(el=>{
+        if(el.closest('#revPanel')||el.closest('#revPop')||el.closest('#revOverlay')) return;
+        let ref; try{ ref=labeler(el); }catch(e){ ref=null; }
+        if(!ref) return;
+        el.classList.add('rev-t');
+        el.setAttribute('data-ref', ref);
+      });
+    });
+  }
+
+  document.addEventListener('click', e=>{
+    if (pop.contains(e.target) || panel.contains(e.target) || (e.target.classList && e.target.classList.contains('rev-badge'))) return;
+    const t = e.target.closest && e.target.closest('.rev-t');
+    if(!t) return;
+    e.preventDefault(); e.stopPropagation();
+    openPop(t.getAttribute('data-ref'), e.clientX, e.clientY);
+  }, true);
+
+  function cssEsc(s){ return (s||'').replace(/["\\]/g,'\\$&'); }
+  function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  function render(){
+    tag();
+    document.querySelectorAll('.rev-t.rev-has').forEach(el=>el.classList.remove('rev-has'));
+    overlay.innerHTML='';
+    notes.forEach((n,idx)=>{
+      const el = document.querySelector('.rev-t[data-ref="'+cssEsc(n.ref)+'"]');
+      if(el){
+        const r = el.getBoundingClientRect();
+        if(r.width===0 && r.height===0) return;
+        el.classList.add('rev-has');
+        const b=document.createElement('div'); b.className='rev-badge'; b.textContent=String(idx+1);
+        b.style.left=(r.right-6)+'px'; b.style.top=(r.top+10)+'px';
+        b.onclick=ev=>{ ev.stopPropagation(); openPop(n.ref, ev.clientX, ev.clientY); };
+        overlay.appendChild(b);
+      }
+    });
+    const list=$('revList');
+    list.innerHTML = notes.length
+      ? notes.map((n,i)=>`<div class="rev-item"><span class="x" data-i="${i}">✕</span><div class="r">${i+1}. ${escapeHtml(n.ref)}</div><div class="t">${escapeHtml(n.text)}</div></div>`).join('')
+      : '<div style="padding:10px 12px;color:#999;">No comments yet.</div>';
+    list.querySelectorAll('.x').forEach(x=>x.onclick=()=>{ notes.splice(+x.getAttribute('data-i'),1); save(); render(); });
+    $('revCount').textContent = notes.length+' notes';
+  }
+
+  let raf; function reflow(){ cancelAnimationFrame(raf); raf=requestAnimationFrame(render); }
+  window.addEventListener('scroll', reflow, true);
+  window.addEventListener('resize', reflow);
+  // Re-tag/redraw as the async forecast renders, and after a manual Refresh.
+  [400,1200,2500,5000,9000].forEach(ms=>setTimeout(()=>{ tag(); render(); }, ms));
+  document.querySelectorAll('.btn').forEach(b=>b.addEventListener('click', ()=>setTimeout(()=>{ tag(); render(); }, 2800)));
+  tag(); render();
+})();
 </script>
 
 </body>
