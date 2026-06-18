@@ -859,12 +859,19 @@ async function renderMacroValidators(data) {
   const byCode = {};
   payload.forEach(p => { (byCode[p.loc] = byCode[p.loc] || {})[p.par] = p.val; });
 
-  // Today's synoptic expectation, from the same Δp the per-spot grid uses.
-  // A validator should only be "failing" if the pattern is actually expected today.
+  // Current-hour Δp — the SAME value the charts plot at their "now" marker, and which
+  // pairs with the live ground validators below (both are a "right now" snapshot). The
+  // per-spot grid separately uses each day's afternoon-mean Δp for its forecast scores.
   let biseDp = null, foehnDp = null;
-  try { const t = buildMetrics(data, 0, 0); biseDp = t.biseDp; foehnDp = t.foehnDp; } catch (e) {}
-  const biseExpected  = biseDp  != null && biseDp  >= 3;   // NE Bise developing on the Plateau
-  const foehnExpected = foehnDp != null && foehnDp >= 4;   // S Föhn pushing into the Alpine valleys
+  try {
+    const base = SPOTS.length;
+    const lug = data[base + 0], zur = data[base + 1], gen = data[base + 2], gut = data[base + 3];
+    const idx = findNowIndex(lug.hourly.time);
+    foehnDp = lug.hourly.pressure_msl[idx] - zur.hourly.pressure_msl[idx];
+    biseDp  = gen.hourly.pressure_msl[idx] - gut.hourly.pressure_msl[idx];
+  } catch (e) {}
+  const biseExpected  = biseDp  != null && biseDp  >= 3;   // NE Bise on the Plateau
+  const foehnExpected = foehnDp != null && foehnDp >= 4;   // S Föhn into the Alpine valleys
 
   function setChip(id, expected, dp, onLabel, offLabel) {
     const el = document.getElementById(id); if (!el) return;
@@ -908,8 +915,8 @@ async function renderMacroValidators(data) {
     </div>`;
   }
 
-  setChip('foehnChip', foehnExpected, foehnDp, 'S Föhn expected', 'no S Föhn expected');
-  setChip('biseChip',  biseExpected,  biseDp,  'Bise expected',   'no Bise expected');
+  setChip('foehnChip', foehnExpected, foehnDp, 'S Föhn on now', 'no S Föhn now');
+  setChip('biseChip',  biseExpected,  biseDp,  'Bise on now',   'no Bise now');
   if (fEl) fEl.innerHTML = VALIDATORS.foehn.map(s => card(s, foehnExpected)).join('');
   if (bEl) bEl.innerHTML = VALIDATORS.bise.map(s => card(s, biseExpected)).join('');
 }
